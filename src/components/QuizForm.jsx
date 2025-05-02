@@ -6,7 +6,7 @@ function QuizForm() {
     const [answer, setAnswer] = useState({}); // ✅ Use an object instead of array
 
     useEffect(() => {
-        axios.get("http://localhost:8000/quiz/home")
+        axios.get("https://quizappbackend-4aj2.onrender.com/quiz/home")
             .then(response => setQuestion(response.data.questions))  // ✅ Change `question` to `questions`
             .catch(error => console.log("Error fetching quiz question:", error));
     }, []);
@@ -32,7 +32,7 @@ function QuizForm() {
                 responses: responses
             };
 
-            const response = await axios.post("http://localhost:8000/quiz/submit", payload);
+            const response = await axios.post("https://quizappbackend-4aj2.onrender.com/quiz/submit", payload);
             alert(`Quiz submitted! Your score: ${response.data.score}`);
         } catch (error) {
             console.error("Error submitting quiz:", error);

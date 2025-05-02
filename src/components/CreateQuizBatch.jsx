@@ -22,7 +22,7 @@ const CreateQuizBatch = () => {
         try {
             const payload = { questions };
             console.log("Submitting Quiz Batch:", payload);  // ✅ Debugging
-            const response = await axios.post("http://localhost:8000/quiz/create-quiz-batch", payload);
+            const response = await axios.post("https://quizappbackend-4aj2.onrender.com/quiz/create-quiz-batch", payload);
             alert("Quiz batch created successfully!");
             setQuestions([{ question: "", options: ["", ""], correctAnswer: "" }]);  // ✅ Reset form after submission
         } catch (error) {
