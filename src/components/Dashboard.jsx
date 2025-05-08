@@ -27,7 +27,7 @@ function Dashboard() {
     // ✅ Fetch quizzes dynamically from backend
     const fetchQuizzes = async () => {
         try {
-            const response = await axios.get("http://localhost:8000/dashboard", { withCredentials: true });
+            const response = await axios.get("https://quizappbackend-4aj2.onrender.com/dashboard", { withCredentials: true });
             setQuizzes(response.data.quizzes);
         } catch (err) {
             console.error("Error fetching quizzes:", err);
@@ -43,7 +43,7 @@ function Dashboard() {
         if (!newName) return;
 
         try {
-            await axios.put(`http://localhost:8000/dashboard/update_quiz/${quizName}`, null, {
+            await axios.put(`https://quizappbackend-4aj2.onrender.com/dashboard/update_quiz/${quizName}`, null, {
                 params: { newName },
                 withCredentials: true
             });
@@ -64,7 +64,7 @@ function Dashboard() {
         if (!window.confirm(`Are you sure you want to delete '${quizName}'?`)) return;
 
         try {
-            await axios.delete("http://localhost:8000/dashboard/delete_quiz", {
+            await axios.delete("https://quizappbackend-4aj2.onrender.com/dashboard/delete_quiz", {
                 data: { QuizName: quizName },
                 withCredentials: true
             });
@@ -81,7 +81,7 @@ function Dashboard() {
         if (!quizName) return;
 
         try {
-            await axios.post("http://localhost:8000/dashboard/add_new_quiz", { QuizName: quizName }, { withCredentials: true });
+            await axios.post("https://quizappbackend-4aj2.onrender.com/dashboard/add_new_quiz", { QuizName: quizName }, { withCredentials: true });
             alert(`Quiz '${quizName}' created successfully!`);
             fetchQuizzes();  // ✅ Refresh list
         } catch (err) {
@@ -92,7 +92,7 @@ function Dashboard() {
 
     const handleLogout = async () => {
         try {
-            await axios.post("http://localhost:8000/user/logout", {}, { withCredentials: true });
+            await axios.post("https://quizappbackend-4aj2.onrender.com/user/logout", {}, { withCredentials: true });
 
             localStorage.removeItem("authToken");
             sessionStorage.clear();

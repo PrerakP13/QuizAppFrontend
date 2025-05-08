@@ -9,7 +9,7 @@ function QuizForm() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        axios.get(`http://localhost:8000/quiz/${quizName}`)
+        axios.get(`https://quizappbackend-4aj2.onrender.com/quiz/${quizName}`)
             .then(response => setQuestion(response.data.questions))  // ✅ Change `question` to `questions`
             .catch(error => console.log("Error fetching quiz question:", error));
     }, []);
@@ -35,7 +35,7 @@ function QuizForm() {
                 responses: responses
             };
 
-            const response = await axios.post(`http://localhost:8000/quiz/${quizName}/submit`, payload);
+            const response = await axios.post(`https://quizappbackend-4aj2.onrender.com/quiz/${quizName}/submit`, payload);
             alert(`Quiz submitted! Your score: ${response.data.score}`);
             setTimeout(() => {
                 navigate("/Dashboard")

@@ -13,7 +13,7 @@ const CreateQuizBatch = () => {
     useEffect(() => {
         const fetchQuestions = async () => {
             try {
-                const response = await axios.get(`http://localhost:8000/quiz/${quizName}`, { withCredentials: true });
+                const response = await axios.get(`https://quizappbackend-4aj2.onrender.com/quiz/${quizName}`, { withCredentials: true });
                 setQuestions(response.data.questions);
             } catch (err) {
                 console.error("Error fetching questions:", err);
@@ -78,7 +78,7 @@ const CreateQuizBatch = () => {
             const payload = { questions: filteredQuestions };
             console.log("Submitting Initial Quiz Batch:", JSON.stringify(payload, null, 2));
 
-            const response = await axios.post(`http://localhost:8000/quiz/${quizName}/create`, payload, { withCredentials: true });
+            const response = await axios.post(`https://quizappbackend-4aj2.onrender.com/quiz/${quizName}/create`, payload, { withCredentials: true });
 
             alert("Quiz created successfully!");
             setTimeout(() => {
@@ -105,7 +105,7 @@ const CreateQuizBatch = () => {
             const payload = { questions: filteredQuestions };
             console.log("Submitting Updated Quiz Batch:", JSON.stringify(payload, null, 2));
 
-            const response = await axios.put(`http://localhost:8000/quiz/${quizName}/update`, payload, { withCredentials: true });
+            const response = await axios.put(`https://quizappbackend-4aj2.onrender.com/quiz/${quizName}/update`, payload, { withCredentials: true });
             
             alert("Quiz batch updated successfully!");
             setTimeout(() => {
