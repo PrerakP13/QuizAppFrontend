@@ -1,25 +1,19 @@
-﻿import { useState } from 'react';
-import QuizForm from './components/QuizForm';
-import CreateQuizBatch from './components/CreateQuizBatch';
-import './App.css';
+﻿import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Dashboard from "./components/Dashboard";
+import LoginPage from "./components/LoginPage";
+import CreateQuizBatch from "./components/CreateQuizBatch";
+import QuizForm from "./components/QuizForm";
 
 function App() {
-    const [view, setView] = useState("");  // ✅ Tracks which feature user selects
-
     return (
-        <>
-            <header>
-                <h1>Welcome to the Quiz App!</h1>
-            </header>
-
-            <div>
-                <button onClick={() => setView("create")}>Create a Quiz</button>
-                <button onClick={() => setView("attempt")}>Attempt a Quiz</button>
-            </div>
-
-            {view === "create" && <CreateQuizBatch />}  {/* ✅ Show quiz creation form */}
-            {view === "attempt" && <QuizForm />}        {/* ✅ Show quiz attempt interface */}
-        </>
+        <Router>
+            <Routes>
+                <Route path="/" element={<LoginPage />} />
+                <Route path="/Dashboard" element={<Dashboard />} />
+                <Route path='/createquizbatch/:quizName' element={<CreateQuizBatch />} />
+                <Route path='/quizform/:quizName' element={<QuizForm />} />
+            </Routes>
+        </Router>
     );
 }
 
