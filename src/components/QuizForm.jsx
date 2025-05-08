@@ -1,12 +1,15 @@
 ﻿import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
 
 function QuizForm() {
+    const { quizName } = useParams();
     const [question, setQuestion] = useState([]);
     const [answer, setAnswer] = useState({}); // ✅ Use an object instead of array
+    const navigate = useNavigate();
 
     useEffect(() => {
-        axios.get("https://quizappbackend-4aj2.onrender.com/quiz/home")
+        axios.get(`http://localhost:8000/quiz/${quizName}`)
             .then(response => setQuestion(response.data.questions))  // ✅ Change `question` to `questions`
             .catch(error => console.log("Error fetching quiz question:", error));
     }, []);
@@ -32,14 +35,21 @@ function QuizForm() {
                 responses: responses
             };
 
-            const response = await axios.post("https://quizappbackend-4aj2.onrender.com/quiz/submit", payload);
+            const response = await axios.post(`http://localhost:8000/quiz/${quizName}/submit`, payload);
             alert(`Quiz submitted! Your score: ${response.data.score}`);
+            setTimeout(() => {
+                navigate("/Dashboard")
+            }, 6000
+            );
         } catch (error) {
             console.error("Error submitting quiz:", error);
         }
     };
 
     return (
+        <>
+            <h1>{quizName}</h1>
+            <br></br><br></br>
         <form onSubmit={QuizSubmit}>
             {question.map((q) => (
                 <div key={q._id}>
@@ -59,7 +69,8 @@ function QuizForm() {
                 </div>
             ))}
             <button type="submit">Submit Quiz</button>
-        </form>
+            </form>
+        </>
     );
 }
 
