@@ -18,7 +18,7 @@ const QuizForm = () => {
     useEffect(() => {
         const fetchQuestions = async () => {
             try {
-                const response = await axios.get(`http://localhost:8000/quiz/${quizName}`);
+            .catch(error => console.log("Error fetching quiz question:", error));
                 setQuestions(response.data.questions);
             } catch (error) {
                 console.error("Error fetching quiz questions:", error);
@@ -51,7 +51,7 @@ const QuizForm = () => {
                 responses: responses
             };
 
-            const response = await axios.post(`http://localhost:8000/quiz/${quizName}/submit`, payload);
+            const response = await axios.post(`https://quizappbackend-4aj2.onrender.com/quiz/${quizName}/submit`, payload);
 
             if (response.data && response.data.score !== undefined) {
                 setScore(response.data.score);  // ✅ Store score
