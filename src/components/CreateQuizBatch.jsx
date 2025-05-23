@@ -1,15 +1,19 @@
 ﻿import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Button, Form, Input, Select, Space, Typography, Modal, Spin, message } from "antd";
+import { PlusOutlined, DeleteOutlined, HomeOutlined } from "@ant-design/icons";
+
+const { Title } = Typography;
+const { Option } = Select;
 
 const CreateQuizBatch = () => {
-    const { quizName } = useParams(); // ✅ Get quiz name from URL
+    const { quizName } = useParams();
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = "";
+    const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    // ✅ Fetch existing questions from the database
     useEffect(() => {
         const fetchQuestions = async () => {
             try {
@@ -60,122 +64,161 @@ const CreateQuizBatch = () => {
         setQuestions(updatedQuestions);
     };
 
-    const backtohome = () => {
-        navigate("/Dashboard");
+    // ✅ Ant Design Modal for Confirmation
+    const removeQuestion = (qIndex, questionId) => {
+        Modal.confirm({
+            title: "Delete Question?",
+            content: "Are you sure you want to delete this question?",
+            onOk: async () => {
+                const updatedQuestions = [...questions];
+
+                if (!updatedQuestions[qIndex].question.trim()) {
+                    updatedQuestions.splice(qIndex, 1);
+                    setQuestions(updatedQuestions);
+                    return;
+                }
+
+                try {
+                    await axios.delete(`https://quizappbackend-4aj2.onrender.com/quiz/${quizName}/remove/${questionId}`, { withCredentials: true });
+                    updatedQuestions.splice(qIndex, 1);
+                    setQuestions(updatedQuestions);
+                    message.success("Question deleted successfully!");
+                } catch (error) {
+                    console.error("Error deleting question:", error);
+                    message.error("Failed to delete question.");
+                }
+            },
+        });
     };
 
-    // ✅ Submit initial quiz questions when creating a new quiz
     const handleInitialSubmit = async (e) => {
         e.preventDefault();
-
         const filteredQuestions = questions.filter(q => q.question.trim() !== "");
         if (filteredQuestions.length === 0) {
-            alert("At least one question is required!");
+            message.warning("At least one question is required!");
             return;
         }
-
         try {
             const payload = { questions: filteredQuestions };
-            console.log("Submitting Initial Quiz Batch:", JSON.stringify(payload, null, 2));
-
-            const response = await axios.post(`https://quizappbackend-4aj2.onrender.com/quiz/${quizName}/create`, payload, { withCredentials: true });
-
-            alert("Quiz created successfully!");
-            setTimeout(() => {
-                navigate("/Dashboard")
-            }, 6000
-            );
+            await axios.post(`https://quizappbackend-4aj2.onrender.com/quiz/${quizName}/create`, payload, { withCredentials: true });
+            message.success("Quiz created successfully!");
+            navigate("/Dashboard");
         } catch (error) {
-            console.error("Error creating quiz batch:", error.response?.data || error);
-            alert("Failed to create quiz.");
+            console.error("Error creating quiz batch:", error);
+            message.error("Failed to create quiz.");
         }
     };
 
-    // ✅ Update existing quiz questions
     const handleUpdate = async (e) => {
         e.preventDefault();
-
         const filteredQuestions = questions.filter(q => q.question.trim() !== "");
         if (filteredQuestions.length === 0) {
-            alert("At least one question is required!");
+            message.warning("At least one question is required!");
             return;
         }
-
         try {
             const payload = { questions: filteredQuestions };
-            console.log("Submitting Updated Quiz Batch:", JSON.stringify(payload, null, 2));
-
-            const response = await axios.put(`https://quizappbackend-4aj2.onrender.com/quiz/${quizName}/update`, payload, { withCredentials: true });
-            
-            alert("Quiz batch updated successfully!");
-            setTimeout(() => {
-                navigate("/Dashboard")
-            }, 6000
-            );
+            await axios.put(`https://quizappbackend-4aj2.onrender.com/quiz/${quizName}/update`, payload, { withCredentials: true });
+            message.success("Quiz batch updated successfully!");
+            navigate("/Dashboard");
         } catch (error) {
-            console.error("Error updating quiz batch:", error.response?.data || error);
-            alert("Failed to update quiz batch.");
+            console.error("Error updating quiz batch:", error);
+            message.error("Failed to update quiz batch.");
         }
     };
 
     return (
         <>
-            <button type="button" align="right" onClick={backtohome}>🏠 Home</button>
-            <form>
-                {loading && <p>Loading questions...</p>}
-                {error && <p style={{ color: "red" }}>{error}</p>}
-                <h1>{quizName}</h1>
+            <Space style={{ display: "flex", justifyContent: "space-between" }}>
+                <Button
+                    
+                    style={{ backgroundColor: "#673AB7", borderColor: "#673AB7", color: "white" }}
+                    onClick={() => navigate("/Dashboard")}
+                >
+                    🏠 Home
+                </Button>
+                <Title level={2}>{quizName}</Title>
+            </Space>
 
-                {!loading &&
-                    questions.map((q, qIndex) => (
-                        <div key={qIndex} style={{ width: "100%", maxWidth: "1000px", margin: "auto" }}>
-                            <textarea
-                                placeholder="Enter question"
-                                value={q.question}
-                                onChange={(e) => updateQuestionText(qIndex, e.target.value)}
-                                style={{
-                                    width: "100%",
-                                    maxWidth: "1200px",
-                                    minHeight: "50px",
-                                    whiteSpace: "normal",
-                                }}
-                            />
+
+            {loading ? (
+                <Spin size="large" />
+            ) : (
+                <Form layout="vertical">
+                    {questions.map((q, qIndex) => (
+                        <div key={qIndex} style={{ padding: "15px", borderBottom: "1px solid #ddd" }}>
+                            <Form.Item label={<span style={{ fontWeight: "bold", fontSize: "18px", color: "#FF5722" }}>
+                                Question {qIndex + 1}
+                            </span>
+                            }>
+                                <Input.TextArea
+                                    value={q.question}
+                                    onChange={(e) => updateQuestionText(qIndex, e.target.value)}
+                                    placeholder="Enter question"
+                                    autoSize={{ minRows: 2, maxRows: 6 }}
+                                />
+                            </Form.Item>
 
                             {q.options.map((opt, optIndex) => (
-                                <div key={optIndex}>
-                                    <input
-                                        type="text"
-                                        placeholder="Enter option"
+                                <Space key={optIndex} style={{ display: "flex", marginBottom: "10px" }}>
+                                    <Input
                                         value={opt}
                                         onChange={(e) => updateOptionText(qIndex, optIndex, e.target.value)}
+                                        placeholder="Enter option"
                                     />
-                                    <button type="button" onClick={() => removeOption(qIndex, optIndex)}>❌ Remove Option</button>
-                                </div>
+                                    <Button type="danger" icon={<DeleteOutlined />} style={{ borderColor:"Red" }} onClick={() => removeOption(qIndex, optIndex)}>
+                                        <b>Remove</b>
+                                    </Button>
+                                </Space>
                             ))}
 
-                            <button type="button" onClick={() => addOption(qIndex)}>➕ Add Option</button>
+                            <Button type="dashed" style={{ borderColor:"Black" }} icon={<PlusOutlined />} onClick={() => addOption(qIndex)}>
+                                Add Option
+                            </Button>
 
-                            <label>Select Correct Answer:</label>
-                            <select
-                                value={q.correctAnswer}
-                                onChange={(e) => updateCorrectAnswer(qIndex, e.target.value)}
-                            >
-                                <option value="">Select an answer</option>
-                                {q.options.map((opt, optIndex) => (
-                                    <option key={optIndex} value={opt}>{opt}</option>
-                                ))}
-                            </select>
+                            <Form.Item label="Select Correct Answer">
+                                <Select
+                                    value={q.correctAnswer}
+                                    onChange={(value) => updateCorrectAnswer(qIndex, value)}
+                                    placeholder="Select correct answer"
+                                >
+                                    {q.options.map((opt, optIndex) => (
+                                        <Option key={optIndex} value={opt}>
+                                            {opt}
+                                        </Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+
+                            <Button type="danger" icon={<DeleteOutlined />} style={{ backgroundColor: "#ffcccb", borderColor: "black" }} onClick={() => removeQuestion(qIndex, q._id)}>
+                                Delete Question
+                            </Button>
                         </div>
-                    ))
-                }
+                    ))}
 
-                <button type="button" align="center" onClick={addQuestion}>➕ Add Another Question</button>
-                <br /><br /><br />
+                        <Button
+                            style={{ backgroundColor: "#FFC107", borderColor: "#FFC107", color: "black" }}
+                            onClick={addQuestion}
+                        >
+                            ➕ Add Another Question
+                        </Button>
 
-                {/* ✅ Separate buttons for quiz creation and updating */}
-                <button type="button" onClick={handleInitialSubmit}>🆕 Create Quiz</button>
-                <button type="submit" onClick={handleUpdate}>💾 Save Changes</button>
-            </form>
+
+                    <Space style={{ marginTop: "20px", display: "flex", justifyContent: "space-between" }}>
+                            <Button
+                                style={{ backgroundColor: "#FF5722", borderColor: "#FF5722", color: "white" }}
+                                onClick={handleInitialSubmit}
+                            ><b>🆕 Create Quiz</b></Button>
+                            <Button
+                                style={{ backgroundColor: "#4CAF50", borderColor: "#4CAF50", color: "black" }}
+                                onClick={handleUpdate}
+                            >
+                                💾 Save Changes
+                            </Button>
+
+                    </Space>
+                </Form>
+            )}
         </>
     );
 };

@@ -1,10 +1,12 @@
-﻿import { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import QuizForm from "./QuizForm";
-import CreateQuizBatch from "./CreateQuizBatch";
+import { Button, Space, Typography, Spin, message, Modal, List } from "antd";
+import { HomeOutlined, PlusOutlined, DeleteOutlined, EditOutlined, LogoutOutlined } from "@ant-design/icons";
 
-function Dashboard() {
+const { Title } = Typography;
+
+const Dashboard = () => {
     const [userType, setUserType] = useState("");
     const [quizzes, setQuizzes] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -15,16 +17,14 @@ function Dashboard() {
         const storedUserType = sessionStorage.getItem("user_type");
 
         if (!storedUserType) {
-            alert("Unauthorized access! Please log in.");
+            message.warning("Unauthorized access! Please log in.");
             navigate("/");
         } else {
             setUserType(storedUserType);
+            fetchQuizzes();
         }
-
-        fetchQuizzes();  // ✅ Fetch quiz data on mount
     }, [navigate]);
 
-    // ✅ Fetch quizzes dynamically from backend
     const fetchQuizzes = async () => {
         try {
             const response = await axios.get("https://quizappbackend-4aj2.onrender.com/dashboard", { withCredentials: true });
@@ -37,57 +37,65 @@ function Dashboard() {
         }
     };
 
-    // ✅ API Requests for Quiz Management
     const editQuizName = async (quizName) => {
-        const newName = prompt("Enter new quiz name:");
-        if (!newName) return;
-
-        try {
+        Modal.confirm({
+            title: "Rename Quiz",
+            content: "Enter new quiz name:",
+            onOk: async () => {
+                const newName = prompt("Enter new quiz name:");
+                if (!newName) return;
+                try {
             await axios.put(`https://quizappbackend-4aj2.onrender.com/dashboard/update_quiz/${quizName}`, null, {
-                params: { newName },
-                withCredentials: true
-            });
-            alert(`Quiz '${quizName}' renamed to '${newName}'`);
-            fetchQuizzes();  // ✅ Refresh list
-        } catch (err) {
-            console.error("Error updating quiz:", err);
-            alert("Failed to update quiz name.");
-        }
-    };
-
-    const addQuestions = async (quizName) => {
-        alert(`Redirecting to add questions for '${quizName}'`);
-        navigate(`/createquizbatch/${quizName}`);
+                        params: { newName },
+                        withCredentials: true
+                    });
+                    message.success(`Quiz renamed to '${newName}'`);
+                    fetchQuizzes();
+                } catch (err) {
+                    console.error("Error updating quiz:", err);
+                    message.error("Failed to update quiz name.");
+                }
+            }
+        });
     };
 
     const deleteQuiz = async (quizName) => {
-        if (!window.confirm(`Are you sure you want to delete '${quizName}'?`)) return;
-
-        try {
+        Modal.confirm({
+            title: "Delete Quiz?",
+            content: `Are you sure you want to delete '${quizName}'?`,
+            onOk: async () => {
+                try {
             await axios.delete("https://quizappbackend-4aj2.onrender.com/dashboard/delete_quiz", {
-                data: { QuizName: quizName },
-                withCredentials: true
-            });
-            alert(`Quiz '${quizName}' deleted successfully!`);
-            fetchQuizzes();  // ✅ Refresh list
-        } catch (err) {
-            console.error("Error deleting quiz:", err);
-            alert("Failed to delete quiz.");
-        }
+                        data: { QuizName: quizName },
+                        withCredentials: true
+                    });
+                    message.success(`Quiz '${quizName}' deleted successfully!`);
+                    fetchQuizzes();
+                } catch (err) {
+                    console.error("Error deleting quiz:", err);
+                    message.error("Failed to delete quiz.");
+                }
+            }
+        });
     };
 
     const addNewQuiz = async () => {
-        const quizName = prompt("Enter quiz name:");
-        if (!quizName) return;
-
-        try {
+        Modal.confirm({
+            title: "Create New Quiz",
+            content: "Enter quiz name:",
+            onOk: async () => {
+                const quizName = prompt("Enter quiz name:");
+                if (!quizName) return;
+                try {
             await axios.post("https://quizappbackend-4aj2.onrender.com/dashboard/add_new_quiz", { QuizName: quizName }, { withCredentials: true });
             alert(`Quiz '${quizName}' created successfully!`);
             fetchQuizzes();  // ✅ Refresh list
-        } catch (err) {
-            console.error("Error creating quiz:", err);
-            alert("Failed to create quiz.");
-        }
+                } catch (err) {
+                    console.error("Error creating quiz:", err);
+                    message.error("Failed to create quiz.");
+                }
+            }
+        });
     };
 
     const handleLogout = async () => {
@@ -97,50 +105,83 @@ function Dashboard() {
             localStorage.removeItem("authToken");
             sessionStorage.clear();
             navigate("/");
-
         } catch (error) {
             console.error("Logout failed:", error);
-            alert("Logout failed. Try again!");
+            message.error("Logout failed. Try again!");
         }
     };
 
     return (
-        <>
-            <header>
-                <h1>Dashboard</h1>
-            </header>
+        <Space direction="vertical" style={{ width: "100%", padding: "20px" }}>
+            <Button
+                icon={<HomeOutlined />}
+                style={{ backgroundColor: "#673AB7", borderColor: "#673AB7", color: "white" }}
+                onClick={() => navigate("/Dashboard")}
+            >
+                🏠 Home
+            </Button>
 
-            <main style={{ backgroundColor: "lightblue" }}>
-                <h2>Available Quizzes</h2>
+            <Title level={2}>Dashboard</Title>
 
-                {loading && <p>Loading quizzes...</p>}
-                {error && <p style={{ color: "red" }}>{error}</p>}
+            {loading ? (
+                <Spin size="large" />
+            ) : (
+                <>
+                    <Title level={3}>Available Quizzes</Title>
 
-                {!loading && !error && quizzes.map((quiz) => (
-                    <div key={quiz} className="quiz-item">
-                        <span>{quiz}</span>
+                    {error && <Typography.Text type="danger">{error}</Typography.Text>}
 
-                        {userType === "Teacher" && (
-                            <>
-                                <button onClick={() => editQuizName(quiz)}>Edit Quiz Name</button>
-                                <button onClick={() => addQuestions(quiz)}>Add Questions</button>
-                                <button onClick={() => deleteQuiz(quiz)}>Delete Quiz</button>
-                            </>
+                    <List
+                        dataSource={quizzes}
+                        renderItem={(quiz) => (
+                            <List.Item>
+                                <Typography.Text>{quiz}</Typography.Text>
+
+                                {userType === "Teacher" && (
+                                    <Space>
+                                        <Button icon={<EditOutlined />} onClick={() => editQuizName(quiz)}>
+                                            Edit Name
+                                        </Button>
+                                        <Button icon={<PlusOutlined />} onClick={() => navigate(`/createquizbatch/${quiz}`)}>
+                                            Add Questions
+                                        </Button>
+                                        <Button icon={<DeleteOutlined />} danger onClick={() => deleteQuiz(quiz)}>
+                                            Delete Quiz
+                                        </Button>
+                                    </Space>
+                                )}
+
+                                {userType === "Student" && (
+                                    <Button type="primary" onClick={() => navigate(`/quizform/${quiz}`)}>
+                                        Take Quiz
+                                    </Button>
+                                )}
+                            </List.Item>
                         )}
-                        {userType === "Student" && (
-                            <button onClick={() => navigate(`/quizform/${quiz}`)}>Take Quiz</button>
-                        )}
-                    </div>
-                ))}
+                    />
 
-                {userType === "Teacher" && (
-                    <button className="add-quiz" onClick={addNewQuiz}>➕ Add New Quiz</button>
-                )}
-            </main>
+                    {userType === "Teacher" && (
+                        <Button
+                            style={{ backgroundColor: "#FFC107", borderColor: "#FFC107", color: "black" }}
+                            icon={<PlusOutlined />}
+                            onClick={addNewQuiz}
+                        >
+                            ➕ Add New Quiz
+                        </Button>
+                    )}
 
-            <button type="button" onClick={handleLogout}>🚪 Logout</button>
-        </>
+                    <Button
+                        type="primary"
+                        danger
+                        icon={<LogoutOutlined />}
+                        onClick={handleLogout}
+                    >
+                        🚪 Logout
+                    </Button>
+                </>
+            )}
+        </Space>
     );
-}
+};
 
 export default Dashboard;

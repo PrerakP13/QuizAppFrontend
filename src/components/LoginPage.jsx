@@ -1,68 +1,80 @@
 ﻿import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Button, Form, Input, Typography, Space, message, Card } from "antd";
+import { UserOutlined, LockOutlined, LoginOutlined } from "@ant-design/icons";
 
-function LoginPage() {
+const { Title, Text } = Typography;
+
+const LoginPage = () => {
     const [userID, setUserID] = useState("");
     const [userpasswd, setUserPasswd] = useState("");
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
 
     const handlelogin = async (e) => {
         e.preventDefault();
-
         try {
-            const response = await axios.post("https://quizappbackend-4aj2.onrender.com/user/login",
-                {
-                    userID: userID,
-                    user_passwd: userpasswd,
-                    user_type: "Teacher"
-                   
-                    
-                },
-                { withCredentials: true }
-            );
+            const response = await axios.post("http://localhost:8000/user/login", {
+                userID: userID,
+                user_passwd: userpasswd,
+                user_type: "Teacher"
+            }, { withCredentials: true });
 
             console.log("Login successful", response.data);
 
-            // ✅ Ensure user_type exists in response before storing
             if (!response.data.user_type) {
-                alert("Login failed: User type not found!");
+                message.error("Login failed: User type not found!");
                 return;
             }
 
-            alert(`Login Successful! User type: ${response.data.user_type}`);
+            message.success(`Login Successful! User type: ${response.data.user_type}`);
             sessionStorage.setItem("user_type", response.data.user_type);
-
-            // ✅ Navigate only after successful login
             navigate("/Dashboard");
-
         } catch (error) {
             console.error("Login Error", error);
-            alert("Invalid Credentials or Server Error. Please try again.");
+            message.error("Invalid Credentials or Server Error. Please try again.");
         }
     };
 
     return (
-        <>
-            <form onSubmit={handlelogin}>
-                <label>User ID</label>
-                <input
-                    type="text"
-                    value={userID}
-                    onChange={(e) => setUserID(e.target.value)}  // ✅ Correct state update 
-                /><br />
+        <Space direction="vertical" align="center" style={{ width: "100%", padding: "50px" }}>
+            <Title level={2} style={{ color: "#673AB7" }}>🎓 Welcome to QuizMaster</Title>
+            <Text type="secondary">Your interactive quiz platform for students & teachers.</Text>
 
-                <label>Password</label>
-                <input
-                    type="password"
-                    value={userpasswd}
-                    onChange={(e) => setUserPasswd(e.target.value)}  // ✅ Correct state update
-                /><br />
+            <Card style={{ width: 350, padding: "20px", boxShadow: "0px 4px 10px rgba(0,0,0,0.1)" }}>
+                <Title level={3}>Login</Title>
 
-                <button type="submit">Login</button>
-            </form>
-        </>
+                <Form onSubmitCapture={handlelogin} layout="vertical">
+                    <Form.Item label="User ID">
+                        <Input
+                            prefix={<UserOutlined />}
+                            placeholder="Enter your User ID"
+                            value={userID}
+                            onChange={(e) => setUserID(e.target.value)}
+                        />
+                    </Form.Item>
+
+                    <Form.Item label="Password">
+                        <Input.Password
+                            prefix={<LockOutlined />}
+                            placeholder="Enter your Password"
+                            value={userpasswd}
+                            onChange={(e) => setUserPasswd(e.target.value)}
+                        />
+                    </Form.Item>
+
+                    <Button
+                        type="primary"
+                        icon={<LoginOutlined />}
+                        htmlType="submit"
+                        style={{ width: "100%", backgroundColor: "#673AB7", borderColor: "#673AB7", color: "white" }}
+                    >
+                        🔑 Login
+                    </Button>
+                </Form>
+            </Card>
+        </Space>
     );
-}
+};
 
 export default LoginPage;
