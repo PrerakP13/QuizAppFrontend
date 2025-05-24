@@ -18,6 +18,7 @@ const QuizForm = () => {
     useEffect(() => {
         const fetchQuestions = async () => {
             try {
+                await axios.get(`https://quizappbackend-4aj2.onrender.com/quiz/${quizName}`)
             .catch(error => console.log("Error fetching quiz question:", error));
                 setQuestions(response.data.questions);
             } catch (error) {
