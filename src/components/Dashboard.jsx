@@ -1,8 +1,14 @@
-﻿import React, { useEffect, useState } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Button, Space, Typography, Spin, message, Modal, List } from "antd";
-import { HomeOutlined, PlusOutlined, DeleteOutlined, EditOutlined, LogoutOutlined } from "@ant-design/icons";
+import { Button, Space, Typography, Spin, message, Modal, List, Input } from "antd";
+import {
+    HomeOutlined,
+    PlusOutlined,
+    DeleteOutlined,
+    EditOutlined,
+    LogoutOutlined
+} from "@ant-design/icons";
 
 const { Title } = Typography;
 
@@ -11,6 +17,8 @@ const Dashboard = () => {
     const [quizzes, setQuizzes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [isNewQuizModalVisible, setIsNewQuizModalVisible] = useState(false);
+    const [newQuizName, setNewQuizName] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -27,7 +35,9 @@ const Dashboard = () => {
 
     const fetchQuizzes = async () => {
         try {
-            const response = await axios.get("https://quizappbackend-4aj2.onrender.com/dashboard", { withCredentials: true });
+            const response = await axios.get("https://quizappbackend-4aj2.onrender.com/dashboard", {
+                withCredentials: true
+            });
             setQuizzes(response.data.quizzes);
         } catch (err) {
             console.error("Error fetching quizzes:", err);
@@ -45,10 +55,14 @@ const Dashboard = () => {
                 const newName = prompt("Enter new quiz name:");
                 if (!newName) return;
                 try {
-            await axios.put(`https://quizappbackend-4aj2.onrender.com/dashboard/update_quiz/${quizName}`, null, {
-                        params: { newName },
-                        withCredentials: true
-                    });
+                    await axios.put(
+                        `https://quizappbackend-4aj2.onrender.com/dashboard/update_quiz/${quizName}`,
+                        null,
+                        {
+                            params: { newName },
+                            withCredentials: true
+                        }
+                    );
                     message.success(`Quiz renamed to '${newName}'`);
                     fetchQuizzes();
                 } catch (err) {
@@ -65,7 +79,7 @@ const Dashboard = () => {
             content: `Are you sure you want to delete '${quizName}'?`,
             onOk: async () => {
                 try {
-            await axios.delete("https://quizappbackend-4aj2.onrender.com/dashboard/delete_quiz", {
+                    await axios.delete("https://quizappbackend-4aj2.onrender.com/dashboard/delete_quiz", {
                         data: { QuizName: quizName },
                         withCredentials: true
                     });
@@ -79,29 +93,39 @@ const Dashboard = () => {
         });
     };
 
-    const addNewQuiz = async () => {
-        Modal.confirm({
-            title: "Create New Quiz",
-            content: "Enter quiz name:",
-            onOk: async () => {
-                const quizName = prompt("Enter quiz name:");
-                if (!quizName) return;
-                try {
-            await axios.post("https://quizappbackend-4aj2.onrender.com/dashboard/add_new_quiz", { QuizName: quizName }, { withCredentials: true });
-            alert(`Quiz '${quizName}' created successfully!`);
-            fetchQuizzes();  // ✅ Refresh list
-                } catch (err) {
-                    console.error("Error creating quiz:", err);
-                    message.error("Failed to create quiz.");
-                }
-            }
-        });
+    // New function: show custom modal for adding a quiz
+    const showAddNewQuizModal = () => {
+        setNewQuizName(""); // clear previous input
+        setIsNewQuizModalVisible(true);
+    };
+
+    const handleAddNewQuiz = async () => {
+        if (!newQuizName) {
+            message.error("Please enter a quiz name.");
+            return;
+        }
+        try {
+            await axios.post(
+                "https://quizappbackend-4aj2.onrender.com/dashboard/add_new_quiz",
+                { QuizName: newQuizName },
+                { withCredentials: true }
+            );
+            message.success(`Quiz '${newQuizName}' created successfully!`);
+            setIsNewQuizModalVisible(false);
+            fetchQuizzes(); // refresh list
+        } catch (err) {
+            console.error("Error creating quiz:", err);
+            message.error("Failed to create quiz.");
+        }
     };
 
     const handleLogout = async () => {
         try {
-            await axios.post("https://quizappbackend-4aj2.onrender.com/user/logout", {}, { withCredentials: true });
-
+            await axios.post(
+                "https://quizappbackend-4aj2.onrender.com/user/logout",
+                {},
+                { withCredentials: true }
+            );
             localStorage.removeItem("authToken");
             sessionStorage.clear();
             navigate("/");
@@ -115,7 +139,11 @@ const Dashboard = () => {
         <Space direction="vertical" style={{ width: "100%", padding: "20px" }}>
             <Button
                 icon={<HomeOutlined />}
-                style={{ backgroundColor: "#673AB7", borderColor: "#673AB7", color: "white" }}
+                style={{
+                    backgroundColor: "#673AB7",
+                    borderColor: "#673AB7",
+                    color: "white"
+                }}
                 onClick={() => navigate("/Dashboard")}
             >
                 🏠 Home
@@ -162,9 +190,13 @@ const Dashboard = () => {
 
                     {userType === "Teacher" && (
                         <Button
-                            style={{ backgroundColor: "#FFC107", borderColor: "#FFC107", color: "black" }}
+                            style={{
+                                backgroundColor: "#FFC107",
+                                borderColor: "#FFC107",
+                                color: "black"
+                            }}
                             icon={<PlusOutlined />}
-                            onClick={addNewQuiz}
+                            onClick={showAddNewQuizModal}
                         >
                             ➕ Add New Quiz
                         </Button>
@@ -178,6 +210,21 @@ const Dashboard = () => {
                     >
                         🚪 Logout
                     </Button>
+
+                    {/* Custom Modal for Adding New Quiz */}
+                    <Modal
+                        title="Create New Quiz"
+                        visible={isNewQuizModalVisible}
+                        onOk={handleAddNewQuiz}
+                        onCancel={() => setIsNewQuizModalVisible(false)}
+                        okText="Create"
+                    >
+                        <Input
+                            placeholder="Enter quiz name"
+                            value={newQuizName}
+                            onChange={(e) => setNewQuizName(e.target.value)}
+                        />
+                    </Modal>
                 </>
             )}
         </Space>
