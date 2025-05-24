@@ -17,8 +17,8 @@ const LoginPage = () => {
             const response = await axios.post("https://quizappbackend-4aj2.onrender.com/user/login",
                 {
                 userID: userID,
-                user_passwd: userpasswd
-               
+                user_passwd: userpasswd,
+                user_type: "Teacher"
             }, { withCredentials: true });
 
             console.log("Login successful", response.data);
