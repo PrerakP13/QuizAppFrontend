@@ -15,7 +15,11 @@ const LoginPage = () => {
         e.preventDefault();
         try {
             const response = await axios.post("https://quizappbackend-4aj2.onrender.com/user/login",
-               { withCredentials: true });
+                {
+                userID: userID,
+                user_passwd: userpasswd
+               
+            }, { withCredentials: true });
 
             console.log("Login successful", response.data);
 
