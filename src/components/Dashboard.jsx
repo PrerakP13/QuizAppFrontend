@@ -54,17 +54,16 @@ const Dashboard = () => {
             onOk: async () => {
                 const newName = prompt("Enter new quiz name:");
                 if (!newName) return;
+
                 try {
                     await axios.put(
-                        `https://quizappbackend-4aj2.onrender.com/dashboard/update_quiz/${quizName}`,
-                        null,
-                        {
-                            params: { newName },
-                            withCredentials: true
-                        }
+                        `https://quizappbackend-4aj2.onrender.com/dashboard/update_quiz/${quizName}?newName=${encodeURIComponent(newName)}`, // ✅ Pass new name as query parameter
+                        {},
+                        { withCredentials: true }
                     );
+
                     message.success(`Quiz renamed to '${newName}'`);
-                    fetchQuizzes();
+                    fetchQuizzes(); // ✅ Refresh quiz list
                 } catch (err) {
                     console.error("Error updating quiz:", err);
                     message.error("Failed to update quiz name.");
@@ -79,8 +78,8 @@ const Dashboard = () => {
             content: `Are you sure you want to delete '${quizName}'?`,
             onOk: async () => {
                 try {
-                    await axios.delete("https://quizappbackend-4aj2.onrender.com/dashboard/delete_quiz", {
-                        data: { QuizName: quizName },
+                    await axios.delete(`https://quizappbackend-4aj2.onrender.com/dashboard/delete_quiz/${quizName}`, {
+                       
                         withCredentials: true
                     });
                     message.success(`Quiz '${quizName}' deleted successfully!`);
