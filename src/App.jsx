@@ -3,9 +3,11 @@ import Dashboard from "./components/Dashboard";
 import LoginPage from "./components/LoginPage";
 import CreateQuizBatch from "./components/CreateQuizBatch";
 import QuizForm from "./components/QuizForm";
+import { ConfigProvider } from "antd";
 
 function App() {
     return (
+        <ConfigProvider>
         <Router>
             <Routes>
                 <Route path="/" element={<LoginPage />} />
@@ -13,7 +15,8 @@ function App() {
                 <Route path='/createquizbatch/:quizName' element={<CreateQuizBatch />} />
                 <Route path='/quizform/:quizName' element={<QuizForm />} />
             </Routes>
-        </Router>
+            </Router>
+        </ConfigProvider>
     );
 }
 
